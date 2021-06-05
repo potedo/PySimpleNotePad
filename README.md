@@ -24,3 +24,5 @@
 
 ## 機能
 
+![PySimpleNotePad1](https://github.com/potedo/PySimpleNotePad/blob/image/PySimpleNotePad1.png)
+!["PySimpleNotePad](https://github.com/potedo/PySimpleNotePad/blob/image/PySimpleNotePad2.png)
