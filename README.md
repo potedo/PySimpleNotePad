@@ -24,5 +24,22 @@
 
 ## 機能
 
+- メモ帳機能(テキストファイルの編集・保存)
+- フォントの変更
+- カーソル位置の表示(行・列)
+- Redo / Undo 機能、コピー/ペースト、切り取り機能
+- 上記機能の右クリックメニュー
+
+## 表示画面例
+
 ![PySimpleNotePad1](https://github.com/potedo/PySimpleNotePad/blob/image/PySimpleNotePad1.png)
 !["PySimpleNotePad](https://github.com/potedo/PySimpleNotePad/blob/image/PySimpleNotePad2.png)
+
+## ライセンス
+MITライセンスです。
+ただし、PySimpleGUIのライセンスはLGPL-3.0なのでご注意ください。
+
+## Author
+
+Twitter: https://twitter.com/Nov_Log893
+Blog: https://novnote.com/
