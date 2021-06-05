@@ -2,7 +2,6 @@
 
 import os
 import sys
-# import pyperclip
 import PySimpleGUI as sg
 import tkinter as tk
 from tkinter import messagebox
@@ -10,12 +9,6 @@ from tkinter import messagebox
 # Constants: For Key Bind
 CTRL_PLUS_S = "s:83"
 
-# 21/06/02 
-# Undo/Redo(ctrl + Z, ctrl + Y)の機能を追加したい
-# → https://github.com/PySimpleGUI/PySimpleGUI/issues/2836
-# にかかれている、TKinterにある機能を上手く使用してRedo/Undoを実装するか。
-# https://teratail.com/questions/255389
-# あるいはteratailのこの情報とか。
 
 def resource_path(relative):
     if hasattr(sys, '_MEIPASS'):
@@ -23,26 +16,13 @@ def resource_path(relative):
     return os.path.join(os.path.abspath('.'), relative)
 
 
-# textはMultiline.Widgetを指す(->TKtext?)
+# textはMultiline.Widgetを指す
 def redo(event, text):
     try:
         text.edit_redo()
     except:
         pass
 
-
-menu_def_en = [["&File", ["New",
-                          "Open", 
-                          "&Save        Ctrl+S", 
-                          "Save as", 
-                          "&Quit"]],
-               ["&Edit", ["Undo    Ctrl+Z",
-                          "Redo    Ctrl+Y",
-                          "Cut",
-                          "Copy",
-                          "Paste",]],
-               ["&Format", ["Font"]],
-               ["&Help", ["Help", "Version"]]]
 
 menu_def_jp = [["&ファイル", ["新規",
                             "開く", 
@@ -58,17 +38,14 @@ menu_def_jp = [["&ファイル", ["新規",
                        ["&ヘルプ", ["バージョン情報"]]]
 
 if __name__ == "__main__":
-    # print(sys.getdefaultencoding())
-    language_mode = "jp" # もう一つは "en"
+    # default parameters
     default_font = ("Meiryo UI", 9)
-
     sg.theme("SystemDefault1")
+
+
 
     menu = sg.MenuBar(menu_def_jp,
                       key="menubar", pad=((0,0),(0,0)), font=("メイリオ", 9))
-    # save_as_button = sg.FileSaveAs(key="saveas", enable_events=True)
-
-    right_click_menu_en = ['&Right', ['Undo    Ctrl+Z', 'Redo    Ctrl+Y', 'Cut', 'Copy', 'Paste']]
     right_click_menu_jp = ['&Right', ['元に戻す    Ctrl+Z', "再実行　    Ctrl+Y", '切り取り', 'コピー', '貼り付け']]
 
     # -----------------------------------------------------------------
@@ -94,26 +71,28 @@ if __name__ == "__main__":
                                       k=None,
                                       metadata=None,
                                       button_type=sg.BUTTON_TYPE_SAVEAS_FILE,
-                                      visible=False)
+                                      visible=False) # invisibleに変更
 
     files_browse_button = sg.Button(key="file_browse",
                                     button_type=sg.BUTTON_TYPE_BROWSE_FILES,
                                     pad=((0,0),(0,0)),
-                                    visible=False)
+                                    visible=False) # invisibleに変更
 
 
     layout = [[menu],
               [sg.Multiline(key="note", pad=((0,0),(0,0)), border_width=1, right_click_menu=right_click_menu_jp, font=default_font)],
               [sg.StatusBar("行:1 列:1", key="status_bar", pad=((0,0),(0,0)),font=default_font)],
-            #    sg.StatusBar("Windows (CRLF)", key="status_bar2", pad=((0, 0), (0, 0))),
-            #    sg.StatusBar("UTF-8", key="status_bar3", pad=((0,0),(0,0)))],
-              [save_as_custom_button, files_browse_button]] #enable_events=Trueにすると、イベントとして取得可能
+              [save_as_custom_button, files_browse_button]]
 
 
-    icon_path = resource_path("win_memo.ico")
+    icon_path = resource_path("memo.ico")
 
+    # ---------------------------------------------------------------------------
+    # 【Main Window】
     # キーボードショートカットを有効にするため、return_keyboard_eventsをTrueにしている
     # margins=(0,0)とすることで、ウインドウ端の余白をなくすことができる
+    # 閉じるボタン"X"を押したときにイベントを発生させるため、enable_close_attempted_eventをTrueに設定
+    # ---------------------------------------------------------------------------
     window = sg.Window("無題 - PySimpleNotePad", layout, size=(600, 400), icon=icon_path, resizable=True, finalize=True, 
                        return_keyboard_events=True, element_padding=((0,0),(0,0)), border_depth=1, margins=(0,0), enable_close_attempted_event=True)
     window["note"].expand(expand_x=True, expand_y=True) # ウィンドウサイズに応じて入力エリアを可変に
@@ -122,48 +101,26 @@ if __name__ == "__main__":
     text.configure(undo=True) # Undo機能追加
     text.bind("<Control-Key-Y>", lambda event, text=text:redo(event, text)) #Redo機能追加
 
-    #-------
-    # "X"ボタン押下時の確認画面用
-    # → 上手く動かなかった
-    # windowにenable_close_attempted_event=Trueを追加することで対応
-    #------
-    # root = window.TKroot
-
-    # def on_closing():
-    #     if messagebox.askokcancel("Quit", "Do you want to quit?"):
-    #         root.destroy()
-
-    # root.protocol("WM_DELETE_WINDOW", on_closing)
-
-    save_filepath = None
+    save_filepath = None # タイトルにOpen中のファイルを表示するため使用
 
     while True:
 
         event, values = window.Read()
 
-        print(event, values)
-        # print(window["note"].Widget.index("insert"))
-        # print(type(window["note"].Widget.index("insert")))
-
-
-
+        # -------------------------------------
+        #           イベント毎の処理
+        # -------------------------------------
         # Window生成時に、enable_close_attempt_eventをTrueにすれば、
         # "-WINDOW CLOSE ATTEMPTED-"イベントで検出、条件を満たした場合のみ終了、が可能
-        if event in (sg.WIN_CLOSED, "Quit", "終了", "-WINDOW CLOSE ATTEMPTED-"):
+        if event in (sg.WIN_CLOSED, "終了", "-WINDOW CLOSE ATTEMPTED-"):
 
             confirm_exit = sg.popup_ok_cancel("PySimpleNotePadを閉じますか？", title="PySimpleNotePad", keep_on_top=True, icon=icon_path, font=default_font)
 
             if confirm_exit == "OK":
                 break
 
-        elif event in ("New", "新規"):
-            # popup 定義はPySimpleGUI.pyの16034行目に存在
-
-            # popup処理は、要するに別のWindowを作成する処理
-            # → 今回の内容に該当するものは関数化しておく？
-
-            # savepathの有無で挙動を変えたい
-            # -> save_filepathが存在するときは、普通のボタンとスイッチさせる？
+        elif event in ("新規"):
+            # ファイルオープン中か否かでボタンの挙動を変更
             if save_filepath is None or save_filepath == "":
                 save_as_popup_button = sg.Button(key="popup_saveas",
                                                 button_text="保存する",
@@ -207,12 +164,10 @@ if __name__ == "__main__":
                                      location=(None, None)
                                      )
 
-            # このポップアップ自体も、現在編集中のファイルが変更されていた場合のみという用に変更したい
-            # ポップアップの処理: 参考 → PySimpleGUI.py 16034行目以降
+            # ポップアップウィンドウの処理
             while True:
-                # 最初からノンブロッキング処理にして、__TIMEOUT__ イベントが発生しているときに"popup_saveas"がNoneでなければ保存して遷移、で良いかも
+                # 最初からノンブロッキング処理にして、__TIMEOUT__ を発生させる → Save Asを機能させるため
                 popup_button, popup_values = popup_window.read(timeout=0)
-                print(popup_button, popup_values)                
 
                 if popup_button in (sg.WIN_CLOSED, "キャンセル"):
                     break
@@ -234,18 +189,17 @@ if __name__ == "__main__":
                         f.write(values["note"])
                     break
 
-            # 終了処理。忘れないこと。
             popup_window.close()
             del popup_window
 
-            # OKボタンを押したか、保存先を指定した場合のみテキスト領域をクリアする
+
             if popup_button in ("保存しない", "__TIMEOUT__", "popup_save"):
                 window["note"].update("")
                 save_filepath = None # 保存先もクリア(新しくファイルを開くのに、前のファイルを編集するのはおかしい)
                 values["file_browse"] = ""
 
 
-        elif event in ("Open", "開く"):
+        elif event in ("開く"):
 
             files_browse_button.click()
             event, values = window.read(timeout=0) #ここはノンブロッキングでないと止まってしまう
@@ -256,11 +210,9 @@ if __name__ == "__main__":
                     text = f.read() #全文読み込み
 
                 window["note"].update(text)
-                # window["status_bar"].update("{} opened.".format(save_filepath))
 
 
-        # s:83 → ctrl+S のイベントに対応 ： CTRL_PLUS_S = "s:83"といった感じで、定数として管理した方が分かりやすそう
-        elif event in("Save", CTRL_PLUS_S, "上書き保存        Ctrl+S"):
+        elif event in(CTRL_PLUS_S, "上書き保存        Ctrl+S"):
 
             if save_filepath is None or save_filepath == "":
                 save_as_custom_button.click()
@@ -273,16 +225,20 @@ if __name__ == "__main__":
                 with open(save_filepath, "w") as f:
                     f.write(input_texts)
 
-                # window["status_bar2"].update("Text saved.")
 
+        elif event in ("名前を付けて保存"):
+            # 既にあるボタンのインスタンスをクリックする形で実装すればよい(layoutに含まれる必要あり)
+            save_as_custom_button.click() 
 
+            # ---------------------------------------------------
+            # 【保存パスの取得について】
+            # この時点では「名前を付けて保存」のウィンドウがポップアップしただけ
+            # どのファイルへのパスを指定したかは再度取得する必要がある
+            # → 再度window.read()を呼び出してvaluesを更新 (ノンブロッキング処理にする)
+            # ---------------------------------------------------
 
-        elif event in ("Save as", "名前を付けて保存"):
+            event, values = window.read(timeout=0) # "saveas"ボタンの中身(保存パス)はここで取得する必要があるので、ノンブロッキングで取得
 
-            save_as_custom_button.click() # 既にあるボタンのインスタンスをクリックする形で実装すればよい(layoutに含まれる必要あり)
-            # この処理の後、event が "saveas" になるので、上記処理へ遷移する
-            # ということはない。同じくここでwindow.read(timeout=0)を実行し、そのパスで保存を実行しないといけない
-            event, values = window.read(timeout=0)
             save_filepath = values["saveas"]
 
             if save_filepath != "":
@@ -304,33 +260,28 @@ if __name__ == "__main__":
                 pass
 
         
-        elif event in ("Copy", "コピー"):
+        elif event in ("コピー"):
             # try - except で弾かれたとき用に、バックアップの値を用意しておく
             backup = window["note"].Widget.clipboard_get()
             window["note"].Widget.clipboard_clear()
             try:
                 selected_text = window["note"].Widget.selection_get()
-                # print(selected_text)
-                # print(type(selected_text))
                 window["note"].Widget.clipboard_append(selected_text)
             except:
                 window["note"].Widget.clipboard_append(backup)
                 pass
 
 
-
-        elif event in ("Paste", "貼り付け"):
+        elif event in ("貼り付け"):
             try:
                 clipboard_text = window["note"].Widget.clipboard_get()
-                # print(clipboard_text)
-                # print(type(clipboard_text))
                 insert_pos = window["note"].Widget.index("insert")
                 window["note"].Widget.insert(insert_pos, clipboard_text)
             except:
                 pass
             
         
-        elif event in ("Cut", "切り取り"):
+        elif event in ("切り取り"):
             try:
                 selected_text = window["note"].Widget.selection_get()
                 window["note"].Widget.clipboard_clear()
@@ -340,8 +291,8 @@ if __name__ == "__main__":
                 pass
 
         
-        elif event in ("Font", "フォント"):
-
+        elif event in ("フォント"):
+            # ポップアップウィンドウの設定
             size_list = [i for i in range(8, 13)] + [2*i for i in range(7, 15)] + [36, 48, 72]
             size_list_box = sg.Listbox(size_list, key="size", size=(20, 7), default_values=[12], enable_events=True, pad=((0, 0), (0, 20)))
             font_list = [font for font in tk.font.families() if not font[0] == "@"]
@@ -377,38 +328,23 @@ if __name__ == "__main__":
         elif event in ("バージョン情報"):
             sg.popup_ok("PySimpleNotePad \nver. 1.0.0", font=("Meiryo UI", 10), icon=icon_path)
 
-        # 右クリックメニューが変更できなさそうなので断念。ウインドウを作り直せば行ける？
-        # elif event in ("Switch Language", "表示言語切り替え"):
-        #     if language_mode == "jp":
-        #         window["menubar"].Update(menu_definition=menu_def_en)
-        #         window["note"].Widget.RightClickMenu = right_click_menu_en
-        #         language_mode = "en"
-        #     else:
-        #         window["menubar"].Update(menu_definition=menu_def_jp)
-        #         window["note"].Update(right_click_menu=right_click_menu_jp)
-        #         language_mode = "jp"
 
-        # elif event == "Status Bar":
-        #     if window["status_bar"].visible:
-        #         window["status_bar"].Update(visible=False)
-        #     else:
-        #         window["status_bar"].Update(visible=True)
-
+        # -------------------------------------
+        #       イベント毎の処理 - ここまで
+        # -------------------------------------
 
         # 編集中のファイルに合わせてタイトルの表示を変更する(ifでbreakする前に配置すると、windowが消えた時にエラーとなるのでここに記述)
         if save_filepath:
-            # パスを表示しているが、ファイル名だけ上手く取得したい
+            # パスからファイル名を取得
             save_filename = os.path.basename(save_filepath)
             window.TKroot.title(save_filename + "- PysimpleNotePad")
         else:
             window.TKroot.title("無題 - PySimpleNotePad")
-            # window.TKroot.title("No title - PySimpleNotePad")
 
         # マウスクリックでカーソルが移動した場合も表示変更されるようにしたい
         insert_pos = window["note"].Widget.index("insert")
         insert_pos = insert_pos.split(".")
         window["status_bar"].update("行:{} 列:{}".format(insert_pos[0], int(insert_pos[1])+1))
-
 
 
     window.close()
