@@ -38,8 +38,3 @@
 ## ライセンス
 MITライセンスです。
 ただし、PySimpleGUIのライセンスはLGPL-3.0なのでご注意ください。
-
-## Author
-
-Twitter: https://twitter.com/Nov_Log893
-Blog: https://novnote.com/
